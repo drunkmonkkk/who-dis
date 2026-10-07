@@ -50,3 +50,57 @@ work/
 !.env.example
 .dev.vars*
 !.dev.vars.example
+
+# Generated TypeScript/compiler caches
+*.tsbuildinfo
+
+# Dependencies and caches in any package
+node_modules/
+.next/
+.vinext/
+.turbo/
+.cache/
+.parcel-cache/
+.pnpm-store/
+__pycache__/
+*.py[cod]
+
+# Local credentials and environment files (templates contain placeholders only)
+.env
+.env.*
+!.env.example
+.envrc
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+*.key
+*.p12
+*.pfx
+*.keystore
+credentials.json
+service-account*.json
+
+# Deployment/session state, logs and test artifacts
+.vercel/
+.netlify/
+.wrangler/
+*.log
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+blob-report/
+
+# Local database files and editor/OS state
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.sqlite3-journal
+*.db
+*.db-journal
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+Thumbs.db
