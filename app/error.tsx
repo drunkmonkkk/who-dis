@@ -1,0 +1,2 @@
+'use client';
+export default function GameError({reset}:{reset:()=>void}){return <main className="game-main"><span className="sticker pink">TECHNICALLY… OUR BAD.</span><h1 style={{fontSize:50,margin:'25px 0'}}>THE CASE WENT COLD.</h1><p>Something interrupted the game. Your server-saved room is still there.</p><button className="brutal-button lime" style={{marginTop:25}} onClick={reset}>TRY THAT AGAIN ↗</button></main>}

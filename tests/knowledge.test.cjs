@@ -1,0 +1,12 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');
+const {people,productionPeople}=require('../work/test-build/people.js');
+const {answerQuestion,retrieveFacts}=require('../work/test-build/answer-engine.js');
+const {validateModelAnswer,resolveAnswer}=require('../work/test-build/ai.js');
+const {newRoom,newPlayer,startRound,apply,score,publicRoom}=require('../work/test-build/engine.js');
+const get=name=>people.find(p=>p.name===name);
+test('death dates, birth comparisons and sourced education resolve',()=>{const p=get('Albert Einstein');assert.notEqual(answerQuestion(p,'When did they die?').answer,'UNKNOWN');assert.equal(answerQuestion(p,'Were they born before 1950?').answer,'YES');assert.notEqual(answerQuestion(p,'Did they go to college?').answer,'UNKNOWN')});
+test('missing evidence remains unknown and AI cannot add gossip',()=>{const p=get('Taylor Swift');const r=answerQuestion(p,'Are they alive?');assert.equal(validateModelAnswer(p,r,{label:r.answer,answer:'They secretly dated a billionaire.',confidence:r.confidence}),false);assert.equal(answerQuestion(p,'Did they have a secret feud on Mars?').answer,'UNKNOWN')});
+test('fact retrieval isolates marriage from unrelated biography',()=>{for(const p of productionPeople){assert.ok(retrieveFacts(p,'marriage').every(f=>f.topic==='spouses'))}});
+test('tea costs 150 shared points, grows stronger, never exposes sources',()=>{const a=newPlayer('a','A'),b=newPlayer('b','B');const r=newRoom('12345678',a,{mode:'friends',difficulty:'Easy'});r.players.push(b);startRound(r);let strength=0;for(let i=0;i<3;i++){a.lastAction=0;apply(r,a.secret,'tea',{});assert.equal(score(r,a),1000-150*(i+1));assert.equal(score(r,b),score(r,a));assert.ok(r.tea[i].clueStrength>=strength);strength=r.tea[i].clueStrength;assert.ok(!JSON.stringify(publicRoom(r,a.secret).tea).includes('sourceUrls'))}});
+test('all production tea and hints omit subject names',()=>{for(const p of productionPeople){for(const fact of p.tea){assert.ok(fact.safeForGame);assert.ok(!fact.fact.toLowerCase().includes(p.name.toLowerCase()))}assert.ok(p.facts.every(f=>f.sourceUrls.length))}});
+test('simple answers skip AI even with a key',async()=>{const old=global.fetch;global.fetch=()=>{throw Error('Must not call AI')};try{assert.equal((await resolveAnswer(get('Albert Einstein'),'Are they alive?','test-key')).answer,'NO')}finally{global.fetch=old}});

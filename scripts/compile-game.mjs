@@ -1,0 +1,3 @@
+import {spawnSync} from 'node:child_process';import {mkdirSync,writeFileSync} from 'node:fs';
+mkdirSync('work/test-build',{recursive:true});writeFileSync('work/test-build/package.json','{"type":"commonjs"}');
+const result=spawnSync(process.execPath,['node_modules/typescript/bin/tsc',...['engine','people','answer-engine','ai','identity-guard','portraits'].map(n=>'lib/game/'+n+'.ts'),'--rootDir','lib/game','--outDir','work/test-build','--module','commonjs','--moduleResolution','node','--target','es2022','--skipLibCheck','--resolveJsonModule','--esModuleInterop'],{stdio:'inherit'});if(result.status)process.exit(result.status);

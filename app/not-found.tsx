@@ -1,0 +1,2 @@
+import Link from 'next/link';
+export default function NotFound(){return <main className="game-main"><span className="sticker">404 · CASE NOT FOUND</span><h1 style={{fontSize:'clamp(50px,10vw,120px)',lineHeight:1,margin:'35px 0'}}>WHO DIS?<br/>WHERE DIS?</h1><p>This page has an excellent alibi. It was never here.</p><Link className="brutal-button lime" href="/" style={{marginTop:25}}>BACK TO HQ ↗</Link></main>}
