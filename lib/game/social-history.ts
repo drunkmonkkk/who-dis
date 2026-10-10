@@ -1,6 +1,6 @@
+import {rankedTea,buildTeaKnowledge} from './tea-knowledge';
 import type {FactStatus,PersonFact,SourcePerson,SocialHistory,TeaFact,PublicRelationship,GroupMembership} from './knowledge-types';
 import {socialCuration} from './social-curation';
-import {safeFact} from './identity-guard';
 // An academy, union, sports team, or political party is not a music group.
 const musicalGroups:Record<string,GroupMembership['kind']>={
  "Destiny's Child":'group','The Carters':'duo','The Jackson 5':'band','Queen':'band','The Beatles':'band','Plastic Ono Band':'collective','The Dirty Mac':'supergroup','The Quarrymen':'band','The Beat Brothers':'band','Bob Marley & The Wailers':'band','The Upsetters':'backing_group','John Lennon and Yoko Ono':'duo','Yellow Magic Orchestra':'band','Alva Noto + Ryuichi Sakamoto':'duo','U³':'band','BTS':'group','Blackpink':'group','Star Band':'band','Super Étoile':'band','Menudo':'group','Miami Sound Machine':'band','La Sonora Matancera':'band','Selena y Los Dinos':'band','LSD':'supergroup','Shakti':'band'
@@ -27,26 +27,7 @@ export function socialFacts(h:SocialHistory):PersonFact[]{
   ...h.events.map((e,i)=>base(`social-event${i}`,e.topic==='collaboration'?'collaboration':'public_life',e.topic,e.summary,e.summary,e.status,e.sourceUrls))
  ];
 }
-type Story={id:string;topic:string;priority:number;status:FactStatus;sourceUrls:string[];copies:[string,string,string]};
+// Compatibility entry point; ranking and structured coverage live in one place.
 export function buildTea(identity:{name:string;aliases:string[]},history:SocialHistory,facts:PersonFact[]):TeaFact[]{
- const stories:Story[]=[];
- const add=(s:Story)=>{if(s.sourceUrls.length&&s.copies.every(t=>t.length<=190&&safeFact(identity,t)))stories.push(s)};
- const named=(name:string)=>safeFact(identity,name)?name:'another public figure';
- history.relationships.forEach((r,i)=>{
-  if(['rumored','disputed','publicly_denied','false'].includes(r.status)||r.type==='rumored')return;
-  const marriage=['married','former_spouse'].includes(r.type),engaged=r.type==='engaged';
-  const detail=marriage?`A marriage to ${named(r.personName)} is documented${r.startYear?' from '+r.startYear:''}.`:engaged?`They were engaged to ${named(r.personName)}${r.startYear?' in '+r.startYear:''}.`:`Their public relationship history includes ${named(r.personName)}${r.startYear?' from '+r.startYear:''}.`;
-  add({id:`relationship${i}`,topic:marriage?'marriage':engaged?'engagement':'dating',priority:marriage||engaged?2:1,status:r.status,sourceUrls:r.sourceUrls,copies:[marriage?'A marriage is part of their public story.':engaged?'An engagement is part of their public story.':r.famous?'Their relationship history includes another famous person.':'A past relationship is documented in public sources.',detail,r.endReason==='divorce'?`A marriage to ${named(r.personName)} ended in divorce${r.endYear?' in '+r.endYear:''}.`:r.endReason==='breakup'?`Their relationship with ${named(r.personName)} ended${r.endYear?' in '+r.endYear:''}.`:detail]});
- });
- history.rumors.filter(r=>r.safeForGame).forEach((r,i)=>add({id:`rumor${i}`,topic:'rumor',priority:3,status:r.status,sourceUrls:r.sourceUrls,copies:[r.summary,r.summary,r.summary]}));
- history.groups.forEach((g,i)=>add({id:`group${i}`,topic:'band_drama',priority:5,status:g.evidenceStatus,sourceUrls:g.sourceUrls,copies:[`Their music history includes a ${g.kind.replace(/_/g,' ')}.`,`Their group history includes ${named(g.groupName)}.`,`They were part of ${named(g.groupName)}${g.leftYear?', with membership ending in '+g.leftYear:''}.`]}));
- const ranks:Record<string,number>={public_breakup:2,feud:4,band_drama:5,departure:5,dismissal:5,reunion:5,collaboration_drama:6,controversy:7,public_incident:8,award_show:8,public_apology:8,interview:8,internet_moment:8,fallout:9,career_comeback:9,solo_career:9,collaboration:10,friendship:10,career_milestone:10};
- history.events.forEach((e,i)=>add({id:`event${i}`,topic:e.topic,priority:ranks[e.topic]??10,status:e.status,sourceUrls:e.sourceUrls,copies:[e.summary,e.summary,e.summary]}));
- // Sourced unexpected facts are fallback material, after public/social history.
- facts.filter(f=>['career_drama','arrest','wealth','instruments','education','languages','teams','works','awards','positions','genres'].includes(f.topic)).forEach((f,i)=>add({id:`fallback${i}`,topic:f.topic==='arrest'?'controversy':f.topic==='career_drama'?'career_comeback':'unexpected_fact',priority:f.topic==='arrest'?7:f.topic==='career_drama'?9:10,status:f.status,sourceUrls:f.sourceUrls,copies:[f.fact,f.fact,f.fact]}));
- stories.sort((a,b)=>a.priority-b.priority);
- const selected:Story[]=[];const seen=new Set<string>();
- for(const story of stories){if(!seen.has(story.topic)){selected.push(story);seen.add(story.topic)}}
- for(const story of stories)if(!selected.includes(story)&&!selected.some(s=>s.copies[2]===story.copies[2]))selected.push(story);
- return selected.slice(0,10).map((s,i)=>{const strength=(i===0?1:i===1?2:3) as 1|2|3;return {id:`social-tea-${s.id}`,storyId:s.id,topic:s.topic,priority:s.priority,fact:qualified(s.copies[strength-1],s.status),status:s.status,clueStrength:strength,safeForGame:true,sourceUrls:s.sourceUrls}});
+ return rankedTea(identity,buildTeaKnowledge(identity,history),facts);
 }

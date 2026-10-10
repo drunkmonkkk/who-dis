@@ -1,10 +1,18 @@
+import {teaReviews} from './tea-reviews';
+import type {TeaField} from './tea-knowledge';
 import type {Person} from './people';
 import type {ResolvedAnswer,FactStatus,AnswerLabel,GroupMembership,PublicRelationship,SocialEvent} from './knowledge-types';
 import {normalize,safeFact} from './identity-guard';
 import {qualified} from './social-history';
-export const socialIntents=new Set(['band_membership','group_membership','former_group','solo_career','relationship','dating_history','marriage','engagement','breakup','rumor','feud','collaboration','band_drama','reunion','public_incident']);
+export const socialIntents=new Set(['band_membership','group_membership','former_group','solo_career','relationship','dating_history','marriage','engagement','breakup','rumor','feud','collaboration','band_drama','reunion','public_incident','divorce','famous_ex','scandal','controversy','iconic_work']);
 export function socialIntent(text:string):string|null{
  const s=text.toLowerCase().replace(/[’]/g,"'");
+ if(/what.*(?:most famous|best known|famous for|known for)|what.*(?:movie|song|show|film|album|book|project|role).*made.*famous/.test(s))return 'iconic_work';
+ if(/\b(rumou?rs?|rumou?red|speculation|speculate|denied|denial|linked to)\b/.test(s))return 'rumor';
+ if(/scandal/.test(s))return 'scandal';
+ if(/controvers|lawsuit|public mess/.test(s))return 'controversy';
+ if(/divorc/.test(s))return 'divorce';
+ if(/famous ex|who.*(?:ex|exes)\b/.test(s))return 'famous_ex';
  const group=/\b(band|bands|boyband|girlgroup|group|groups|duo|collective|supergroup|bandmate|bandmates)\b/.test(s);
  if(/\b(rumou?rs?|rumou?red|speculation|speculate|denied|denial|linked to)\b/.test(s))return 'rumor';
  if(group&&/feud|fight|conflict|fallout|falling out|drama|kicked|fired|dismiss/.test(s))return 'band_drama';
@@ -44,6 +52,31 @@ export function answerSocial(p:Person,q:string,topic:string):ResolvedAnswer{
   return {answer,explanation:explanation.length<=200?explanation:qualified('A matching public record exists; details are kept off this clue.',status),confidence:status,validQuestion:true,factIds:ids,topic};
  };
  const safeName=(name:string)=>safeFact(p,name)?name:'a public figure whose name would give this away';
+ // Specific reviewed story fields take precedence over broad biographical fallbacks.
+ const fields:Partial<Record<string,TeaField[]>>={divorce:['divorces'],famous_ex:['famousExes'],scandal:['scandals'],controversy:['controversies','scandals'],iconic_work:['iconicWorks'],feud:['feuds'],marriage:['marriages'],engagement:['engagements'],breakup:['publicBreakups'],dating_history:['famousRelationships'],relationship:['famousRelationships'],collaboration:['famousCollaborations']};
+ const review=teaReviews[p.name];
+ if(/secret|on mars/.test(s))return unknown();
+ const strict=['divorce','famous_ex','scandal','controversy','iconic_work'];
+ if(fields[topic]&&(review||strict.includes(topic))&&!/\b(currently|still|now)\b|^are they married|same industry/.test(s)){
+  let records=fields[topic]!.flatMap(f=>p.teaKnowledge[f]);
+  if(topic==='iconic_work'){
+   const media=[[/movie|film|role/,'movie'],[/song/,'song'],[/album/,'album'],[/show/,'show'],[/book/,'book']] as const;
+   const requested=media.filter(([pattern])=>pattern.test(s)).map(([,medium])=>medium);
+   if(requested.length===1)records=records.filter(r=>r.medium===requested[0]);
+   if(/made.*famous/.test(s))records=records.filter(r=>r.breakthrough);
+  }
+  // A broad scandal receipt cannot answer a different named allegation.
+  if(/murder|fraud|abuse|assault|theft|steal/.test(s))records=records.filter(r=>s.match(/murder|fraud|abuse|assault|theft|steal/)?.some(term=>r.summary.toLowerCase().includes(term)));
+  records=records.filter(r=>matchesName(s,r.subjects||[],'with|married to|engaged to|divorced from|divorce from|dated|dating|date'));
+  if(yearIn(s))records=records.filter(r=>r.summary.includes(yearIn(s)!));
+  const named=records.filter(r=>r.subjects?.some(n=>normalize(s).includes(normalize(n))));if(named.length)records=named;
+  if(records.length){const record=records[0];let copy=record.summary;if(!safeFact(p,copy))copy=record.teaText||copy;for(const [name,description] of Object.entries(review?.disclosures||{}))copy=copy.split(name).join(description);
+   const field=fields[topic]!.find(f=>p.teaKnowledge[f].includes(record))!;
+   return reply(copy,record.status,[`tea-${field}-${record.id}`]);
+  }
+  if(strict.includes(topic))return unknown();
+ }
+
  const groupAnswer=(groups:GroupMembership[])=>{
   if(!groups.length)return unknown();
   const names=groups.map(g=>g.groupName).filter(n=>safeFact(p,n));

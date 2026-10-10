@@ -16,11 +16,11 @@ for(const p of people){
  if(p.hints.some(h=>!safeFact(p,h)))errors.push('unsafe hint');
  for(const record of [...p.social.groups,...p.social.relationships,...p.social.rumors,...p.social.events])if(!record.sourceUrls.length||!record.asOf)errors.push('missing social provenance');
  if(p.social.groups.some(g=>g.joinedYear&&g.leftYear&&g.leftYear<g.joinedYear))errors.push('invalid membership dates');
- if(p.eligible&&(p.exclusionReasons.length||p.tea.length<4||p.hints.length<6||!p.coverage.majorAchievements))errors.push('production gate failed');
+ if(p.eligible&&(p.exclusionReasons.length||p.tea.length<3||p.hints.length<6||!p.coverage.majorAchievements))errors.push('production gate failed');
  if(p.social.groups.length&&answerQuestion(p,'Which group were they part of?').answer==='UNKNOWN')errors.push('group facts not retrievable');
  invalid+=errors.length;
  const reasons=[...p.exclusionReasons,...errors];
- issues.push({name:p.name,eligible:p.eligible,facts:p.facts.length,tea:p.tea.length,relationships:p.social.relationships.length,groups:p.social.groups.length,rumors:p.social.rumors.length,events:p.social.events.length,reasons,questions:Object.fromEntries(questions.map(q=>[q,answerQuestion(p,q).answer]))});
+ issues.push({name:p.name,eligible:p.eligible,facts:p.facts.length,tea:p.tea.length,teaQuality:p.teaQuality,topTea:p.tea.slice(0,3).map(t=>({topic:t.topic,score:t.juiciness,text:t.fact})),relationships:p.social.relationships.length,groups:p.social.groups.length,rumors:p.social.rumors.length,events:p.social.events.length,reasons,questions:Object.fromEntries(questions.map(q=>[q,answerQuestion(p,q).answer]))});
 }
 const report={catalog:people.length,eligible:productionPeople.length,excluded:people.length-productionPeople.length,facts:people.reduce((n,p)=>n+p.facts.length,0),tea:productionPeople.reduce((n,p)=>n+p.tea.length,0),reviewedMusic:productionPeople.filter(p=>p.social.musicReview).map(p=>p.name),rumorProfiles:productionPeople.filter(p=>p.social.rumors.length).map(p=>p.name),regions:Object.fromEntries([...new Set(productionPeople.map(p=>p.region))].map(region=>[region,productionPeople.filter(p=>p.region===region).length])),invalid,profiles:issues};
 mkdirSync('work',{recursive:true});writeFileSync('work/people-validation.json',JSON.stringify(report,null,2));

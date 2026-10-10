@@ -154,7 +154,7 @@ export function apply(r: Room, secret: string, action: string, input: GameInput)
     if (action === 'tea') {
         if(r.settings.noHints||r.difficulty==='Unhinged')throw Error('Clues and tea are disabled in this round.');
         r.tea ||= [];
-        const fact=people[r.person].tea.filter(t=>t.safeForGame&&safeFact(people[r.person],t.fact)&&!r.tea!.some(v=>v.id===t.id)).sort((a,b)=>a.clueStrength-b.clueStrength)[0];
+        const fact=people[r.person].tea.filter(t=>t.safeForGame&&safeFact(people[r.person],t.fact)&&!r.tea!.some(v=>v.id===t.id)).sort((a,b)=>(b.juiciness||0)-(a.juiciness||0))[0];
         if(!fact)throw Error('The teapot is empty. No invented refills.');
         r.tea.push(fact);return;
     }
