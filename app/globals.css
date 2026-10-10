@@ -47,3 +47,7 @@ body{padding:36px 4%;background:var(--paper)}body>div{min-width:0}.site-header,.
 /* Keep the printed barcode on one line at narrow dossier widths. */
 .mystery-bottom .barcode{white-space:nowrap;font-size:18px;letter-spacing:-2px;flex-shrink:0}.mystery-bottom>span:first-child{min-width:0}.small .mystery-bottom{gap:8px}.small .mystery-bottom .barcode{font-size:17px}
 @media(max-width:760px){.small .mystery-bottom .barcode{font-size:10px;letter-spacing:-1px}.small .mystery-bottom{gap:5px}}
+/* Sourced social-history edition. Status remains visible even without motion. */
+.tea-topic{font:700 9px monospace;letter-spacing:1px;padding:14px 18px 0}.tea-card .tea-topic+p{padding-top:9px}.tea-card header strong{font-size:clamp(17px,2.2vw,25px)}.answer.rumored .answer-label,.answer.widely-reported .answer-label,.answer.publicly-denied .answer-label,.answer.disputed .answer-label,.answer.false .answer-label{background:var(--paper);border:1px solid var(--ink);font-size:clamp(16px,2vw,24px);padding:6px}.answer.later-confirmed .answer-label,.answer.formerly .answer-label{font-size:clamp(17px,2vw,26px)}
+.gremlin-tea svg{animation:tea-glance 820ms steps(2,end) both}@keyframes tea-glance{0%,100%{transform:translateX(0)}20%{transform:translateX(-3px) rotate(-4deg)}42%{transform:translateX(3px) rotate(4deg)}65%{transform:translateX(2px)}}
+@media(prefers-reduced-motion:reduce){.gremlin-tea svg{animation:none!important;transform:none!important}}
