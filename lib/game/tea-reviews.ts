@@ -1,4 +1,5 @@
 import type {TeaField,TeaRecord,TeaReview} from './tea-knowledge';
+import {categoryProfiles} from './category-profiles';
 // Human-reviewed historical snapshots. No empty field is a claim of non-existence.
 const asOf='2026-10-10';
 const r=(id:string,summary:string,url:string,extra:Partial<TeaRecord>={}):TeaRecord=>({id,storyId:id,summary,status:'verified',sourceUrls:[url],asOf,...extra});
@@ -22,6 +23,7 @@ const curie='https://www.nobelprize.org/prizes/chemistry/1911/marie-curie/biogra
 const chaplin='https://www.pbs.org/wnet/americanmasters/charlie-chaplin-biographical-timeline/14049/';
 const dali='https://www.salvador-dali.org/en/dali-and-gala/dual-timeline/';
 export const teaReviews:Record<string,TeaReview>={
+ ...Object.fromEntries(Object.entries(categoryProfiles).map(([name,p])=>[name,p.review])),
  'Beyonce':review('https://www.womenshistory.org/education-resources/biographies/beyonce-knowles-carter','Reviewed group history, public marriage and reunion. No unsourced infidelity theories included.',{
   marriages:[r('jayz','They married Jay-Z in 2008; ten years later, the pair released a joint album.','https://live.grammy.com/news/beyonce-grammys-facts-renaissance-songs-albums-jay-z-kids-blue-ivy-destinys-child-collaborators-halo-queen-bey',{subjects:['Jay-Z']})],
   iconicWorks:[r('crazy','Their solo debut launched Crazy in Love, a collaboration with Jay-Z.','https://www.womenshistory.org/education-resources/biographies/beyonce-knowles-carter',{medium:'song',breakthrough:true})]

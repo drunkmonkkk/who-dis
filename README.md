@@ -16,7 +16,7 @@ The server classifies question intent, retrieves only relevant fields, determini
 
 ## 3. Curated tea
 
-Each eligible profile has 3–5 safe tea cards drawn from its sourced facts, including unexpected education, instruments, work, affiliations, awards and a smaller set of reviewed public incidents. Facts remain neutral. Tea costs **150 points for every guesser**, is purchased once per card, and progresses through three clue-strength levels. No Hints and Unhinged disable purchases. The server enforces every rule.
+The current production pool has 40 editorially reviewed profiles out of 291 catalog entries. Every eligible profile has at least three sourced Tea cards, ranked by relationship/public-life interest before iconic works or other trivia. Bollywood, Cricket, Football and Writers each have five reviewed profiles; India has nine overlapping profiles. Unreviewed catalog entries remain excluded until enriched. Rumors, reported stories and public denials retain their labels; empty fields never prove an event did not happen. Tea costs **150 points for every guesser**, is purchased once per card, and progresses through three clue-strength levels. No Hints and Unhinged disable purchases. The server enforces every rule.
 
 ## 4. Preventing invented gossip and identity leaks
 
@@ -79,7 +79,7 @@ npm run build
 npm start
 ```
 
-Create/import the `who-dis` Vercel project with this directory as its root, Next.js framework, Node 24, `npm ci` install and `npm run build` build. Add the same environment values to the intended Preview/Production environments. Apply `db/postgres/001_rooms.sql` to each environment's database using the migration command. Deploy, then run:
+Use the existing Vercel project **6-vector / who-dis** (`prj_yCzFrwp7GAIQWEFlOHzH4k6ImXgO`), connected to `drunkmonkkk/who-dis` on production branch `main`, serving https://who-dis-six.vercel.app/. Do not create a duplicate project. This directory uses the Next.js framework, Node 24, `npm ci` install and `npm run build` build. Add the same environment values to the intended Preview/Production environments. Apply `db/postgres/001_rooms.sql` to each environment's database using the migration command. Deploy, then run:
 
 ```sh
 TEST_URL=https://YOUR-DEPLOYMENT npm run test:http
@@ -91,7 +91,7 @@ The older Cloudflare preview remains available with `npm run dev:sites`; its loc
 
 ## 12. Vercel readiness
 
-The stock Next.js production build passes and includes the dynamic `/api/game` route. Metadata, favicon, social preview, custom 404 and error states are present. Database outages return a safe 503 message. This code is Vercel-compatible; a complete operational sign-off additionally requires a connected, migrated database and a successful deployed two-client test. See `DELIVERY.md` for the current verification/deployment status.
+The stock Next.js production build passes and includes the dynamic `/api/game` route. Metadata, favicon, social preview, custom 404 and error states are present. Database outages return a safe 503 message. This code is Vercel-compatible; a complete operational sign-off additionally requires a connected, migrated database and a successful deployed two-client test. See `CATEGORY-VERIFICATION.md` for the category release and the distinction between local checks and live verification.
 
 ## 13. Configuration still needed
 

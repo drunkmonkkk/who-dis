@@ -53,12 +53,13 @@ export function answerSocial(p:Person,q:string,topic:string):ResolvedAnswer{
  };
  const safeName=(name:string)=>safeFact(p,name)?name:'a public figure whose name would give this away';
  // Specific reviewed story fields take precedence over broad biographical fallbacks.
- const fields:Partial<Record<string,TeaField[]>>={divorce:['divorces'],famous_ex:['famousExes'],scandal:['scandals'],controversy:['controversies','scandals'],iconic_work:['iconicWorks'],feud:['feuds'],marriage:['marriages'],engagement:['engagements'],breakup:['publicBreakups'],dating_history:['famousRelationships'],relationship:['famousRelationships'],collaboration:['famousCollaborations']};
+ const fields:Partial<Record<string,TeaField[]>>={rumor:['rumoredRelationships'],divorce:['divorces'],famous_ex:['famousExes'],scandal:['scandals'],controversy:['controversies','scandals'],iconic_work:['iconicWorks'],feud:['feuds'],marriage:['marriages'],engagement:['engagements'],breakup:['publicBreakups'],dating_history:['famousRelationships'],relationship:['famousRelationships'],collaboration:['famousCollaborations']};
  const review=teaReviews[p.name];
  if(/secret|on mars/.test(s))return unknown();
  const strict=['divorce','famous_ex','scandal','controversy','iconic_work'];
  if(fields[topic]&&(review||strict.includes(topic))&&!/\b(currently|still|now)\b|^are they married|same industry/.test(s)){
   let records=fields[topic]!.flatMap(f=>p.teaKnowledge[f]);
+  if(topic==='rumor'&&(h.rumors.length||/band|group|feud|career|breakup|split/.test(s)))records=[];
   if(topic==='iconic_work'){
    const media=[[/movie|film|role/,'movie'],[/song/,'song'],[/album/,'album'],[/show/,'show'],[/book/,'book']] as const;
    const requested=media.filter(([pattern])=>pattern.test(s)).map(([,medium])=>medium);

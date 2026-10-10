@@ -5,7 +5,26 @@ const {teaReviews}=require('../work/test-build/tea-reviews.js');
 const {answerQuestion}=require('../work/test-build/answer-engine.js');
 const {newPlayer,newRoom,startRound,apply,publicRoom}=require('../work/test-build/engine.js');
 const {safeFact}=require('../work/test-build/identity-guard.js');
+const {selectPerson}=require('../work/test-build/engine.js');
+test('new decks have reviewed depth and select only their own eligible people',()=>{
+ for(const category of ['Bollywood','Cricket','Football','Writers','India']){
+  const pool=productionPeople.filter(p=>p.categories.includes(category));assert.ok(pool.length>=5,category);
+  const used=[];for(let i=0;i<pool.length;i++){const id=selectPerson(category,used,'Easy',()=>.4);assert.ok(!used.includes(id));assert.ok(pool.some(p=>p.id===id));used.push(id);}
+ }
+});
+test('new category questions retrieve specific receipts and preserve uncertainty',()=>{
+ const examples=[['Aamir Khan','Did they get divorced?',/Kiran Rao.*2021/],['Deepika Padukone','Who was their famous ex?',/Bollywood star.*former boyfriend/],['Virat Kohli','Were they married?',/Bollywood star.*2017/],['Shane Warne','Were they ever engaged?',/Elizabeth Hurley/],['Neymar','Who did they date?',/Bruna Marquezine/],['George Orwell','Were they ever married?',/Eileen/],['Shah Rukh Khan','Did they feud with anyone?',/reported.*rift/i],['J. K. Rowling','Any controversies?',/Daniel Radcliffe|film adaptations/]];
+ for(const [name,q,expected] of examples){const answer=answerQuestion(people.find(p=>p.name===name),q);assert.notEqual(answer.answer,'UNKNOWN',name+q);assert.match(answer.explanation,expected);}
+ const b=people.find(p=>p.name==='David Beckham');const denial=answerQuestion(b,'Were there any relationship rumors?');assert.equal(denial.answer,'PUBLICLY DENIED');assert.match(denial.explanation,/denied/i);
+ for(const name of ['David Beckham','Virat Kohli','Neymar','William Shakespeare'])assert.equal(answerQuestion(people.find(p=>p.name===name),'Were they in a music band?').answer,'UNKNOWN');
+ const o=people.find(p=>p.name==='George Orwell');assert.equal(o.teaKnowledge.divorces.length,0);assert.ok(!o.tea.some(t=>/divorc/i.test(t.fact)));
+ const m=people.find(p=>p.name==='Diego Maradona');assert.equal(m.teaKnowledge.divorces.length,0,'ex-wife alone is not a reviewed divorce receipt');
+});
 const fixtures={
+ 'Shah Rukh Khan':/Gauri.*1991/,'Deepika Padukone':/dated.*fellow Bollywood star/,'Priyanka Chopra':/married.*pop singer/,'Aamir Khan':/divorce.*2021/,'Ranbir Kapoor':/Tamasha.*split/,
+ 'Sachin Tendulkar':/journalist.*courtship/,'Virat Kohli':/married.*Italy.*2017/,'MS Dhoni':/ceremony.*media outside/,'Shane Warne':/Elizabeth Hurley.*engagement/,'Imran Khan':/nine-year marriage.*divorce/,
+ 'David Beckham':/pop superstar.*1999/,'Lionel Messi':/hometown wedding.*guest list/,'Cristiano Ronaldo':/civil ceremony.*2026/,'Diego Maradona':/WIDELY REPORTED.*former spouse/,'Neymar':/breakup.*Bruna Marquezine/,
+ 'J. K. Rowling':/marriage ended.*chapters/,'Agatha Christie':/divorce.*1928/,'George Orwell':/Eileen.*satire/,'Rabindranath Tagore':/wife Mrinalini.*companions/,'William Shakespeare':/married.*1582/,
  'Albert Einstein':/divorce.*Nobel/i,'Marie Curie':/research partner|scandal/i,'Tom Hanks':/Volunteers/,'Leonardo DiCaprio':/Gisele Bündchen/,'Tom Cruise':/Nicole Kidman.*divorce|marriage.*Nicole Kidman/i,'Marilyn Monroe':/baseball legend/,'Charlie Chaplin':/playwright.*fourth marriage/,'Taylor Swift':/Harry Styles/,'Beyonce':/joint album/,'Freddie Mercury':/rock frontperson.*opera star/,'John Lennon':/Paul McCartney/,'Ed Sheeran':/jury.*Marvin Gaye/i,'Lady Gaga':/Taylor Kinney.*engagement/,'Steve Jobs':/power struggle/,'Nelson Mandela':/marriage ended.*1996/i,'Frida Kahlo':/divorcing.*self-portrait/,'Salvador Dali':/Paul Éluard/,'Jin':/denied.*disbanding/,'Jungkook':/denied.*disbanding/,'Shakira':/footballer.*ended.*2022/
 };
 for(const [name,receipt] of Object.entries(fixtures))test(`real Tea purchases: ${name}`,()=>{
@@ -17,7 +36,7 @@ for(const [name,receipt] of Object.entries(fixtures))test(`real Tea purchases: $
  const answer=answerQuestion(p,'What are they most famous for?');assert.notEqual(answer.answer,'UNKNOWN');assert.notEqual(answerQuestion(p,'What are they best known for?').answer,'UNKNOWN');assert.ok(answer.factIds.every(id=>id.startsWith('tea-iconicWorks-')));assert.doesNotMatch(answer.explanation,/record exists|work includes|profession/);
 });
 test('all eligible profiles have dedicated structured fields and evidence, never generic Tea',()=>{
- assert.ok(productionPeople.length>=20);
+ assert.ok(productionPeople.length>=40);
  for(const p of productionPeople){for(const field of teaFields){assert.ok(Array.isArray(p.teaKnowledge[field]));for(const record of p.teaKnowledge[field]){assert.ok(record.sourceUrls.length);assert.ok(record.asOf);}}
   assert.ok(p.teaQuality.eligible);assert.ok(p.tea.every(t=>t.juiciness>=60));assert.ok(p.teaKnowledge.iconicWorks.length);
  }
